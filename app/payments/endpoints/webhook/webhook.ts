@@ -1,10 +1,10 @@
 import { api } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import Stripe from "stripe";
-import { db } from "./database/database";
+import { db } from "../../database/database";
 import { buffer } from "node:stream/consumers";
-import { createStripeClient } from "../../shared/stripe/client";
-import { webhookEvents } from "./topics";
+import { createStripeClient } from "../../../../shared/stripe/client";
+import { webhookEvents } from "../../pubsub/topics";
 
 const stripeSecretKey = secret("StripeSecretKey");
 const stripeWebhookSecret = secret("StripeWebhookSecret");
@@ -122,14 +122,16 @@ export const webhook = api.raw(
             const subscriptionStatus = dataObject
                 ? (subscriptionData.status || dataObject.status || null)
                 : null;
-            const planId = subscriptionData.items?.data?.[0]?.price?.id ||
-                subscriptionData.plan?.id ||
-                dataObject.plan?.id ||
-                null;
-            const interval = subscriptionData.items?.data?.[0]?.price?.recurring?.interval ||
-                subscriptionData.plan?.interval ||
-                dataObject.plan?.interval ||
-                null;
+            const planId = dataObject
+                ? (subscriptionData.items?.data?.[0]?.price?.id ||
+                    dataObject.plan?.id ||
+                    null)
+                : null;
+            const interval = dataObject
+                ? (subscriptionData.items?.data?.[0]?.price?.recurring?.interval ||
+                    dataObject.plan?.interval ||
+                    null)
+                : null;
             const currentPeriodStart = dataObject && subscriptionData.current_period_start
                 ? new Date(subscriptionData.current_period_start * 1000)
                 : null;

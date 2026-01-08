@@ -1,7 +1,7 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
-import { db } from "./database/database";
-import { db as paymentDb } from "../payments/database/database";
+import { db } from "../../database/database";
+import { payment } from "~encore/clients";
 
 interface WebhookEvent {
     id: string;
@@ -35,29 +35,10 @@ export const getUserWebhooks = api(
             throw new APIError(ErrCode.NotFound, "User not found");
         }
 
-        // Get all webhook events for this user
-        const webhooks: WebhookEvent[] = [];
-        const rows = await paymentDb.query<WebhookEvent>`
-            SELECT 
-                id,
-                stripe_event_id,
-                event_type,
-                customer_id,
-                subscription_id,
-                amount,
-                currency,
-                subscription_status,
-                created_at
-            FROM webhook_events
-            WHERE user_id = ${userId}::uuid
-            ORDER BY created_at DESC
-        `;
+        // Get webhooks via API call to payment service
+        const result = await payment.listUserWebhooks({ userId });
 
-        for await (const webhook of rows) {
-            webhooks.push(webhook);
-        }
-
-        return { webhooks };
+        return result;
     }
 );
 

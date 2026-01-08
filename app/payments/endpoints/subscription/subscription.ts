@@ -2,7 +2,8 @@ import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import Stripe from "stripe";
-import { createStripeClient } from "../../shared/stripe/client";
+import { createStripeClient } from "../../../../shared/stripe/client";
+import { user } from "~encore/clients";
 
 const stripeSecretKey = secret("StripeSecretKey");
 
@@ -22,17 +23,10 @@ export const createSubscription = api(
     async (req: CreateSubscriptionRequest): Promise<CreateSubscriptionResponse> => {
         const stripe = createStripeClient(stripeSecretKey());
 
-        // Get user's stripe_customer_id from database
-        const { db: userDb } = await import("../users/database/database");
-        const user = await userDb.queryRow<{ stripe_customer_id: string | null }>`
-      SELECT stripe_customer_id FROM users WHERE id = ${req.user_id}
-    `;
+        // Get user's stripe_customer_id via API call to user service
+        const userData = await user.getStripeCustomerId({ userId: req.user_id });
 
-        if (!user) {
-            throw new APIError(ErrCode.NotFound, "User not found");
-        }
-
-        if (!user.stripe_customer_id) {
+        if (!userData.stripe_customer_id) {
             throw new APIError(
                 ErrCode.FailedPrecondition,
                 "User does not have a Stripe customer ID"
@@ -42,7 +36,7 @@ export const createSubscription = api(
         try {
             // Create subscription in Stripe
             const subscription = await stripe.subscriptions.create({
-                customer: user.stripe_customer_id,
+                customer: userData.stripe_customer_id,
                 items: [{ price: req.price_id }],
                 payment_behavior: "default_incomplete",
                 payment_settings: { save_default_payment_method: "on_subscription" },
