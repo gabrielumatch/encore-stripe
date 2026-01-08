@@ -1,14 +1,6 @@
 import { api } from "encore.dev/api";
 import { db } from "@users/database/database";
-
-interface User {
-    id: string;
-    email: string;
-    name: string;
-    stripe_customer_id: string | null;
-    created_at: Date;
-    updated_at: Date;
-}
+import { User } from "@users/types";
 
 interface ListUsersResponse {
     users: User[];

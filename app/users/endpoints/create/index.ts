@@ -1,30 +1,17 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
-import { secret } from "encore.dev/config";
 import { db } from "@users/database/database";
-import { createStripeClient } from "@shared/stripe/client";
-
-const stripeSecretKey = secret("StripeSecretKey");
+import { payment } from "~encore/clients";
+import { User } from "@users/types";
 
 interface CreateUserRequest {
     email: string;
     name: string;
 }
 
-interface CreateUserResponse {
-    id: string;
-    email: string;
-    name: string;
-    stripe_customer_id: string | null;
-    created_at: Date;
-    updated_at: Date;
-}
-
 export const create = api(
     { expose: true, method: "POST", path: "/users" },
-    async (req: CreateUserRequest): Promise<CreateUserResponse> => {
-        const stripe = createStripeClient(stripeSecretKey());
-
+    async (req: CreateUserRequest): Promise<User> => {
         // Check if user already exists
         const existingUser = await db.queryRow<{ id: string }>`
             SELECT id FROM users WHERE email = ${req.email}
@@ -34,14 +21,14 @@ export const create = api(
             throw new APIError(ErrCode.AlreadyExists, "User with this email already exists");
         }
 
-        // Create customer in Stripe
+        // Create customer in Stripe via payment service
         let stripeCustomerId: string | null = null;
         try {
-            const customer = await stripe.customers.create({
+            const customerData = await payment.createCustomer({
                 email: req.email,
                 name: req.name,
             });
-            stripeCustomerId = customer.id;
+            stripeCustomerId = customerData.stripe_customer_id;
         } catch (error) {
             // If Stripe fails, we can still create the user without stripe_customer_id
             // or throw an error - let's throw for now to ensure Stripe integration works
@@ -52,7 +39,7 @@ export const create = api(
         }
 
         // Insert user into database
-        const user = await db.queryRow<CreateUserResponse>`
+        const user = await db.queryRow<User>`
       INSERT INTO users (email, name, stripe_customer_id)
       VALUES (${req.email}, ${req.name}, ${stripeCustomerId})
       RETURNING id, email, name, stripe_customer_id, created_at, updated_at

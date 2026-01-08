@@ -1,33 +1,7 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
 import { db } from "@users/database/database";
-
-interface User {
-    id: string;
-    email: string;
-    name: string;
-    stripe_customer_id: string | null;
-    created_at: Date;
-    updated_at: Date;
-}
-
-interface Subscription {
-    id: string;
-    user_id: string;
-    stripe_subscription_id: string;
-    stripe_customer_id: string;
-    status: string;
-    plan_id: string | null;
-    amount: number | null;
-    currency: string | null;
-    interval: string | null;
-    current_period_start: Date | null;
-    current_period_end: Date | null;
-    cancel_at_period_end: boolean;
-    canceled_at: Date | null;
-    created_at: Date;
-    updated_at: Date;
-}
+import { User, Subscription } from "@users/types";
 
 interface GetUserResponse {
     user: User;

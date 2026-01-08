@@ -2,7 +2,7 @@ import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import Stripe from "stripe";
-import { createStripeClient } from "../../../../shared/stripe/client";
+import { createStripeClient } from "@shared/stripe/client";
 import { user } from "~encore/clients";
 
 const stripeSecretKey = secret("StripeSecretKey");
