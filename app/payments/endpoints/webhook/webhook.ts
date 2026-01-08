@@ -5,6 +5,7 @@ import { db } from "@payments/database/database";
 import { buffer } from "node:stream/consumers";
 import { createStripeClient } from "@shared/stripe/client";
 import { webhookEvents } from "@payments/pubsub/topics";
+import { user } from "~encore/clients";
 
 const stripeSecretKey = secret("StripeSecretKey");
 const stripeWebhookSecret = secret("StripeWebhookSecret");
@@ -145,13 +146,23 @@ export const webhook = api.raw(
                 ? new Date(subscriptionData.canceled_at * 1000)
                 : null;
 
-            // Find user_id by stripe_customer_id (will be null if not found)
-            const user = customerId
-                ? await db.queryRow<{ id: string }>`
-            SELECT id FROM users WHERE stripe_customer_id = ${customerId}
-          `
-                : null;
-            const userId = user?.id || null;
+            // Find user_id by stripe_customer_id via API call to user service
+            let userId: string | null = null;
+            if (customerId) {
+                try {
+                    const userData = await user.getByStripeCustomerId({
+                        stripe_customer_id: customerId,
+                    });
+                    userId = userData.user_id;
+                } catch (error) {
+                    // If user not found, userId remains null
+                    // This is expected for webhooks from customers not in our system
+                    console.warn(
+                        `User not found for stripe_customer_id: ${customerId}`,
+                        error
+                    );
+                }
+            }
 
             // Save webhook event to database
             // We save the complete payload (JSONB) which works for both snapshot and thin formats
