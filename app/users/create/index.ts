@@ -1,14 +1,7 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
-import { secret } from "encore.dev/config";
-import Stripe from "stripe";
 import { db } from "../database";
-
-const stripeSecretKey = secret("StripeSecretKey");
-
-const stripe = new Stripe(stripeSecretKey(), {
-    apiVersion: "2025-12-15.clover",
-});
+import { stripe } from "../../stripe/client";
 
 interface CreateUserRequest {
     email: string;
