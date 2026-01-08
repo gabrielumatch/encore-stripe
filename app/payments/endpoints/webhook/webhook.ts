@@ -2,7 +2,6 @@ import { api } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import Stripe from "stripe";
 import { db } from "@payments/database/database";
-import { buffer } from "node:stream/consumers";
 import { createStripeClient } from "@shared/stripe/client";
 import { webhookEvents } from "@payments/pubsub/topics";
 import { user } from "~encore/clients";
@@ -14,11 +13,25 @@ export const webhook = api.raw(
     { expose: true, path: "/webhook/stripe", method: "POST" },
     async (req, resp) => {
         try {
+            console.log("Webhook received:", {
+                method: req.method,
+                url: req.url,
+                headers: Object.keys(req.headers || {}),
+            });
+
             const stripe = createStripeClient(stripeSecretKey());
 
-            // Get the raw body as buffer for signature verification
-            const rawBody = await buffer(req);
+            // Read raw body from stream for signature verification
+            // We need the raw body exactly as Stripe sent it
+            // Important: In raw endpoints, req is already a stream, so we need to read it directly
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+                chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+            }
+            const rawBody = chunks.length === 1 ? chunks[0] : Buffer.concat(chunks as any);
+
             const signature = req.headers["stripe-signature"];
+
 
             if (!signature) {
                 resp.writeHead(400, { "Content-Type": "application/json" });
@@ -28,18 +41,24 @@ export const webhook = api.raw(
 
             let event: Stripe.Event;
             try {
+                // Get webhook secret
+                const webhookSecret = stripeWebhookSecret();
+
                 // Verify webhook signature using raw body buffer
+                // Important: rawBody must be the exact bytes Stripe sent, as a Buffer
                 event = stripe.webhooks.constructEvent(
                     rawBody,
                     signature,
-                    stripeWebhookSecret()
+                    webhookSecret
                 ) as Stripe.Event;
             } catch (err) {
+                console.error("Webhook signature verification failed:", err);
                 resp.writeHead(400, { "Content-Type": "application/json" });
                 resp.end(
                     JSON.stringify({
                         error: "Webhook signature verification failed",
                         message: err instanceof Error ? err.message : "Unknown error",
+                        details: err instanceof Error ? err.stack : undefined,
                     })
                 );
                 return;
