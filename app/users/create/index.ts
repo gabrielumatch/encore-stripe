@@ -29,7 +29,7 @@ export const create = api(
     async (req: CreateUserRequest): Promise<CreateUserResponse> => {
         // Check if user already exists
         const existingUser = await db.queryRow<{ id: string }>`
-      SELECT id FROM users WHERE email = ${req.email}
+            SELECT id FROM users WHERE email = ${req.email}
     `;
 
         if (existingUser) {
