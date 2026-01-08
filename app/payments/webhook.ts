@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { db } from "./database";
 import { buffer } from "node:stream/consumers";
 import { stripe, getWebhookSecret } from "../stripe/client";
+import { webhookEvents } from "./topics";
 
 export const webhook = api.raw(
     { expose: true, path: "/webhook/stripe", method: "POST" },
@@ -194,6 +195,37 @@ export const webhook = api.raw(
           false
         )
       `;
+
+            // Publish to PubSub for subscription-related events
+            // This allows other services to react to subscription changes
+            if (
+                event.type.includes("subscription") ||
+                event.type.includes("invoice") ||
+                event.type.includes("customer.subscription")
+            ) {
+                try {
+                    await webhookEvents.publish({
+                        stripe_event_id: event.id,
+                        event_type: event.type,
+                        user_id: userId,
+                        customer_id: customerId,
+                        subscription_id: subscriptionId,
+                        subscription_status: subscriptionStatus,
+                        amount: amount,
+                        currency: currency,
+                        plan_id: planId,
+                        interval: interval,
+                        current_period_start: currentPeriodStart,
+                        current_period_end: currentPeriodEnd,
+                        cancel_at_period_end: cancelAtPeriodEnd,
+                        canceled_at: canceledAt,
+                        payload: event,
+                    });
+                } catch (pubErr) {
+                    // Log error but don't fail the webhook
+                    console.error("Failed to publish webhook event to PubSub:", pubErr);
+                }
+            }
 
             // Respond to Stripe (200 OK)
             // Important: Always respond 200 quickly to acknowledge receipt
