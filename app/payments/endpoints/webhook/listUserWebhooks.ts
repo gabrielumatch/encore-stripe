@@ -1,25 +1,10 @@
 import { api } from "encore.dev/api";
 import { db } from "@payments/database/database";
-
-interface WebhookEvent {
-    id: string;
-    stripe_event_id: string;
-    event_type: string;
-    customer_id: string | null;
-    subscription_id: string | null;
-    amount: number | null;
-    currency: string | null;
-    subscription_status: string | null;
-    created_at: Date;
-}
-
-interface ListUserWebhooksResponse {
-    webhooks: WebhookEvent[];
-}
-
-interface ListUserWebhooksRequest {
-    userId: string;
-}
+import {
+    WebhookEvent,
+    ListUserWebhooksRequest,
+    ListUserWebhooksResponse,
+} from "@payments/types";
 
 export const listUserWebhooks = api(
     { method: "GET", path: "/webhooks/users/:userId" },

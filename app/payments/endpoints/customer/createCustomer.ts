@@ -2,17 +2,12 @@ import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createStripeClient } from "@shared/stripe/client";
+import {
+    CreateCustomerRequest,
+    CreateCustomerResponse,
+} from "@payments/types";
 
 const stripeSecretKey = secret("StripeSecretKey");
-
-interface CreateCustomerRequest {
-    email: string;
-    name: string;
-}
-
-interface CreateCustomerResponse {
-    stripe_customer_id: string;
-}
 
 /**
  * Private endpoint to create a Stripe customer.

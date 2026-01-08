@@ -28,3 +28,36 @@ export interface Subscription {
     created_at: Date;
     updated_at: Date;
 }
+
+/**
+ * Request/Response types for user endpoints
+ */
+export interface CreateUserRequest {
+    email: string;
+    name: string;
+}
+
+export interface GetUserRequest {
+    userId: string;
+}
+
+export interface GetUserResponse {
+    user: User;
+    subscription: Subscription | null;
+}
+
+export interface ListUsersResponse {
+    users: User[];
+}
+
+export interface GetStripeCustomerIdRequest {
+    userId: string;
+}
+
+export interface GetStripeCustomerIdResponse {
+    stripe_customer_id: string | null;
+}
+
+export interface GetUserWebhooksRequest {
+    userId: string;
+}

@@ -1,14 +1,10 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
 import { db } from "@users/database/database";
-
-interface GetStripeCustomerIdRequest {
-    userId: string;
-}
-
-interface GetStripeCustomerIdResponse {
-    stripe_customer_id: string | null;
-}
+import {
+    GetStripeCustomerIdRequest,
+    GetStripeCustomerIdResponse,
+} from "@users/types";
 
 export const getStripeCustomerId = api(
     { method: "GET", path: "/users/:userId/stripe-customer-id" },

@@ -1,10 +1,6 @@
 import { api } from "encore.dev/api";
 import { db } from "@users/database/database";
-import { User } from "@users/types";
-
-interface ListUsersResponse {
-    users: User[];
-}
+import { User, ListUsersResponse } from "@users/types";
 
 export const list = api(
     { expose: true, method: "GET", path: "/users" },

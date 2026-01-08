@@ -2,12 +2,7 @@ import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
 import { db } from "@users/database/database";
 import { payment } from "~encore/clients";
-import { User } from "@users/types";
-
-interface CreateUserRequest {
-    email: string;
-    name: string;
-}
+import { User, CreateUserRequest } from "@users/types";
 
 export const create = api(
     { expose: true, method: "POST", path: "/users" },

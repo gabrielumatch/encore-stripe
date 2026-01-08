@@ -1,16 +1,7 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
 import { db } from "@users/database/database";
-import { User, Subscription } from "@users/types";
-
-interface GetUserResponse {
-    user: User;
-    subscription: Subscription | null;
-}
-
-interface GetUserRequest {
-    userId: string;
-}
+import { User, Subscription, GetUserRequest, GetUserResponse } from "@users/types";
 
 export const getUser = api(
     { expose: true, method: "GET", path: "/users/:userId" },

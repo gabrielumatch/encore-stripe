@@ -4,19 +4,12 @@ import { secret } from "encore.dev/config";
 import Stripe from "stripe";
 import { createStripeClient } from "@shared/stripe/client";
 import { user } from "~encore/clients";
+import {
+    CreateSubscriptionRequest,
+    CreateSubscriptionResponse,
+} from "@payments/types";
 
 const stripeSecretKey = secret("StripeSecretKey");
-
-interface CreateSubscriptionRequest {
-    user_id: string;
-    price_id: string;
-}
-
-interface CreateSubscriptionResponse {
-    subscription_id: string;
-    status: string;
-    client_secret?: string;
-}
 
 export const createSubscription = api(
     { expose: true, method: "POST", path: "/subscriptions" },
