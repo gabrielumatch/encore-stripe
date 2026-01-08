@@ -1,14 +1,20 @@
 import { api } from "encore.dev/api";
+import { secret } from "encore.dev/config";
 import Stripe from "stripe";
-import { db } from "./database";
+import { db } from "./database/database";
 import { buffer } from "node:stream/consumers";
-import { stripe, getWebhookSecret } from "../stripe/client";
+import { createStripeClient } from "../../shared/stripe/client";
 import { webhookEvents } from "./topics";
+
+const stripeSecretKey = secret("StripeSecretKey");
+const stripeWebhookSecret = secret("StripeWebhookSecret");
 
 export const webhook = api.raw(
     { expose: true, path: "/webhook/stripe", method: "POST" },
     async (req, resp) => {
         try {
+            const stripe = createStripeClient(stripeSecretKey());
+
             // Get the raw body as buffer for signature verification
             const rawBody = await buffer(req);
             const signature = req.headers["stripe-signature"];
@@ -25,7 +31,7 @@ export const webhook = api.raw(
                 event = stripe.webhooks.constructEvent(
                     rawBody,
                     signature,
-                    getWebhookSecret()
+                    stripeWebhookSecret()
                 ) as Stripe.Event;
             } catch (err) {
                 resp.writeHead(400, { "Content-Type": "application/json" });

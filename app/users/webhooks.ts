@@ -1,7 +1,7 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
-import { db } from "./database";
-import { db as paymentDb } from "../payments/database";
+import { db } from "./database/database";
+import { db as paymentDb } from "../payments/database/database";
 
 interface WebhookEvent {
     id: string;

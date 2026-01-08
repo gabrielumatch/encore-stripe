@@ -1,7 +1,10 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
-import { db } from "../database";
-import { stripe } from "../../stripe/client";
+import { secret } from "encore.dev/config";
+import { db } from "../database/database";
+import { createStripeClient } from "../../../shared/stripe/client";
+
+const stripeSecretKey = secret("StripeSecretKey");
 
 interface CreateUserRequest {
     email: string;
@@ -20,10 +23,12 @@ interface CreateUserResponse {
 export const create = api(
     { expose: true, method: "POST", path: "/users" },
     async (req: CreateUserRequest): Promise<CreateUserResponse> => {
+        const stripe = createStripeClient(stripeSecretKey());
+
         // Check if user already exists
         const existingUser = await db.queryRow<{ id: string }>`
             SELECT id FROM users WHERE email = ${req.email}
-    `;
+        `;
 
         if (existingUser) {
             throw new APIError(ErrCode.AlreadyExists, "User with this email already exists");

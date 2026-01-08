@@ -1,5 +1,5 @@
 import { Subscription } from "encore.dev/pubsub";
-import { db } from "./database";
+import { db } from "./database/database";
 import { webhookEvents, WebhookEvent } from "../payments/topics";
 
 const _ = new Subscription(webhookEvents, "update-subscriptions", {

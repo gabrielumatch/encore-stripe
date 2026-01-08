@@ -1,5 +1,5 @@
 import { api } from "encore.dev/api";
-import { db } from "./database";
+import { db } from "./database/database";
 
 interface User {
     id: string;

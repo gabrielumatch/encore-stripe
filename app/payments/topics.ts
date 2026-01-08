@@ -1,5 +1,4 @@
 import { Topic } from "encore.dev/pubsub";
-import Stripe from "stripe";
 
 export interface WebhookEvent {
     stripe_event_id: string;

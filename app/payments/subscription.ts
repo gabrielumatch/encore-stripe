@@ -1,7 +1,10 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
+import { secret } from "encore.dev/config";
 import Stripe from "stripe";
-import { stripe } from "../stripe/client";
+import { createStripeClient } from "../../shared/stripe/client";
+
+const stripeSecretKey = secret("StripeSecretKey");
 
 interface CreateSubscriptionRequest {
     user_id: string;
@@ -17,8 +20,10 @@ interface CreateSubscriptionResponse {
 export const createSubscription = api(
     { expose: true, method: "POST", path: "/subscriptions" },
     async (req: CreateSubscriptionRequest): Promise<CreateSubscriptionResponse> => {
+        const stripe = createStripeClient(stripeSecretKey());
+
         // Get user's stripe_customer_id from database
-        const { db: userDb } = await import("../users/database");
+        const { db: userDb } = await import("../users/database/database");
         const user = await userDb.queryRow<{ stripe_customer_id: string | null }>`
       SELECT stripe_customer_id FROM users WHERE id = ${req.user_id}
     `;
