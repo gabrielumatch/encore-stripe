@@ -1,6 +1,6 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
-import { db } from "../../database/database";
+import { db } from "@users/database/database";
 
 interface GetStripeCustomerIdRequest {
     userId: string;

@@ -1,8 +1,8 @@
 import { api } from "encore.dev/api";
 import { APIError, ErrCode } from "encore.dev/api";
 import { secret } from "encore.dev/config";
-import { db } from "../../database/database";
-import { createStripeClient } from "../../../../shared/stripe/client";
+import { db } from "@users/database/database";
+import { createStripeClient } from "@shared/stripe/client";
 
 const stripeSecretKey = secret("StripeSecretKey");
 

@@ -1,10 +1,10 @@
 import { api } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import Stripe from "stripe";
-import { db } from "../../database/database";
+import { db } from "@payments/database/database";
 import { buffer } from "node:stream/consumers";
-import { createStripeClient } from "../../../../shared/stripe/client";
-import { webhookEvents } from "../../pubsub/topics";
+import { createStripeClient } from "@shared/stripe/client";
+import { webhookEvents } from "@payments/pubsub/topics";
 
 const stripeSecretKey = secret("StripeSecretKey");
 const stripeWebhookSecret = secret("StripeWebhookSecret");
